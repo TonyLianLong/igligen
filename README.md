@@ -1,5 +1,85 @@
 # IGLIGEN: Improved Implementation for Training GLIGEN (Open-Set Grounded Text-to-Image Generation)
-This research project aims to create a complete, huggingface-style pipeline for **training** GLIGEN adapters. The project is part of the effort in creating [LLM-grounded Diffusion Models (LMD+)](https://llm-grounded-diffusion.github.io/) and [LLM-grounded Video Diffusion Models (LVD-GLIGEN)](https://llm-grounded-video-diffusion.github.io/). **This implementation supports SD v1.4/v1.5, SD v2.0/v2.1, and ModelScope, with SDXL support planned.** You can use/download pretrained GLIGEN adapters [here](#pretrained-gligen-adapters).
+This research project aims to create a complete, huggingface-style pipeline for **training** GLIGEN adapters. The project is part of the effort in creating [LLM-grounded Diffusion Models (LMD+)](https://llm-grounded-diffusion.github.io/) and [LLM-grounded Video Diffusion Models (LVD-GLIGEN)](https://llm-grounded-video-diffusion.github.io/). **This implementation supports SD v1.4/v1.5, SD v2.0/v2.1, and ModelScope (grounded text-to-video generation), with SDXL support planned.** You can use/download pretrained GLIGEN adapters [here](#pretrained-gligen-adapters).
+
+## Motivation
+The official [GLIGEN](https://github.com/gligen/GLIGEN) training code is from the original latent diffusion/stable diffusion codebase. This make  it not fully compatible with huggingface `diffusers`, `transformers`, `datasets`, and `accelerate` that are commonly used for training diffusion models. Currently, the only released gligen weights are on SDv1.4, and weights for more updated models such as SDv2.1 are missing. This repo (IGLIGEN) makes training GLIGEN on custom datasets and custom models easier.
+
+## Pretrained GLIGEN adapters
+### Text-to-video generation
+The pretrained adapters for text-to-video generation on ModelScope can be found here: [https://huggingface.co/longlian/text-to-video-lvd-ms](https://huggingface.co/longlian/text-to-video-lvd-ms). You can use LLM-generated dynamic scene layouts (i.e., stage 1 of LVD) or provide the boxes for each frame. Check out the [example colab](https://colab.research.google.com/drive/17He4bFAF8lXmT9Nfv-Sg29iKtPelDUNZ).
+
+<details>
+  <summary>An example that uses ModelScope + GLIGEN.</summary>
+
+Tested with `diffusers==0.27.2`.
+
+```python
+import torch
+from diffusers import DiffusionPipeline, DPMSolverMultistepScheduler
+import imageio
+from IPython.display import Image as IPyImage
+import numpy as np
+
+pipe = DiffusionPipeline.from_pretrained("longlian/text-to-video-lvd-ms", trust_remote_code=True, torch_dtype=torch.float16)
+pipe = pipe.to("cuda")
+
+pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
+
+prompt = "An image of grassland with a dog walking from the left to the right."
+fps = 4
+num_frames = 16
+lvd_gligen_boxes = [
+  [[0.15, 0.6, 0.5, 0.8]],
+  [[0.19, 0.6, 0.54, 0.8]],
+  [[0.22999999999999998, 0.6, 0.58, 0.8]],
+  [[0.27, 0.6, 0.62, 0.8]],
+  [[0.31, 0.6, 0.6599999999999999, 0.8]],
+  [[0.35, 0.6, 0.7, 0.8]],
+  [[0.39, 0.6, 0.74, 0.8]],
+  [[0.43000000000000005, 0.6, 0.78, 0.8]],
+  [[0.47, 0.6, 0.82, 0.8]],
+  [[0.51, 0.6, 0.86, 0.8]],
+  [[0.55, 0.6, 0.9, 0.8]],
+  [[0.59, 0.6, 0.94, 0.8]],
+  [[0.63, 0.6, 0.98, 0.8]],
+  [[0.67, 0.6, 1.02, 0.8]],
+  [[0.7100000000000001, 0.6, 1.06, 0.8]],
+  [[0.75, 0.6, 1.1, 0.8]]
+]
+lvd_gligen_phrases = [["a dog"] for _ in range(num_frames)]
+
+generator = torch.manual_seed(1)
+video_frames = pipe(prompt, num_inference_steps=25, height=256, width=256, num_frames=16, lvd_gligen_scheduled_sampling_beta=1.0, lvd_gligen_boxes=lvd_gligen_boxes, lvd_gligen_phrases=lvd_gligen_phrases, generator=generator).frames
+video = imageio.mimsave(imageio.RETURN_BYTES, video_frames, format='gif', loop=0, duration=1000 * 1/fps)
+display(IPyImage(data=video, format='gif'))
+```
+</details>
+
+### Text-to-image generation
+The pretrained adapters for text-to-video generation on SDv2.1 can be found here: [https://huggingface.co/longlian/igligen-sd2.1-v1.0](https://huggingface.co/longlian/igligen-sd2.1-v1.0). The models trained with this repo is compatible with the official pipeline for inference (`StableDiffusionGLIGENPipeline`) on SDv1.5 and SDv2.1. You can use it in LMD+, as currently GLIGEN only offers weights for SDv1.4. Check out the [example colab](https://colab.research.google.com/drive/1vl3Y2gZcjmXBh7fdDUMF9v-rrQZBXUD7).
+
+<details>
+  <summary>An example that uses SD v2.1 + GLIGEN.</summary>
+
+Tested with `diffusers==0.27.2`.
+
+```python
+import torch
+from diffusers import StableDiffusionGLIGENPipeline, DPMSolverMultistepScheduler
+
+pipe = StableDiffusionGLIGENPipeline.from_pretrained("longlian/igligen-sd2.1-v1.0", torch_dtype=torch.float16).to("cuda")
+pipe = pipe.to("cuda")
+
+pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
+
+prompt = "An image of grassland with a dog."
+
+images = pipe(prompt, num_inference_steps=25, height=512, width=512, gligen_scheduled_sampling_beta=0.4, gligen_boxes=[[0.1, 0.6, 0.3, 0.8]], gligen_phrases=["a dog"], num_images_per_prompt=1).images
+
+for image in images:
+    display(image)
+```
+</details>
 
 ## Dataset Download and Preprocessing
 **Note: we have preprocessed the dataset and uploaded them to huggingface. See [Download Preprocessed Dataset](#download-preprocessed-dataset) for details. You only need to download the raw dataset if you want to preprocess them on your own.**
@@ -50,83 +130,6 @@ sh train_sdv2.1.sh
 You can edit the training script to use more/fewer GPUs and update the hyperparameters.
 
 The training time for 500k steps is roughtly 3.75 days on 4x A6000 with image resolution 512x512 on SDv2.1.
-
-## Pretrained GLIGEN adapters#
-## Text-to-video generation
-The pretrained adapters for text-to-video generation on ModelScope can be found here: [https://huggingface.co/longlian/text-to-video-lvd-ms](https://huggingface.co/longlian/text-to-video-lvd-ms). You can use LLM-generated dynamic scene layouts (i.e., stage 1 of LVD) or provide the boxes for each frame. Check out the example colab [here](https://colab.research.google.com/drive/17He4bFAF8lXmT9Nfv-Sg29iKtPelDUNZ).
-
-<details>
-  <summary>An example that uses ModelScope + GLIGEN.</summary>
-
-Tested with `diffusers==0.27.2`.
-
-```python
-import torch
-from diffusers import DiffusionPipeline, DPMSolverMultistepScheduler
-import imageio
-from IPython.display import Image as IPyImage
-import numpy as np
-
-pipe = DiffusionPipeline.from_pretrained("longlian/text-to-video-lvd-ms", trust_remote_code=True, torch_dtype=torch.float16)
-pipe = pipe.to("cuda")
-
-pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
-
-prompt = "An image of grassland with a dog walking from the left to the right."
-fps = 4
-num_frames = 16
-lvd_gligen_boxes = [
-  [[0.15, 0.6, 0.5, 0.8]],
-  [[0.19, 0.6, 0.54, 0.8]],
-  [[0.22999999999999998, 0.6, 0.58, 0.8]],
-  [[0.27, 0.6, 0.62, 0.8]],
-  [[0.31, 0.6, 0.6599999999999999, 0.8]],
-  [[0.35, 0.6, 0.7, 0.8]],
-  [[0.39, 0.6, 0.74, 0.8]],
-  [[0.43000000000000005, 0.6, 0.78, 0.8]],
-  [[0.47, 0.6, 0.82, 0.8]],
-  [[0.51, 0.6, 0.86, 0.8]],
-  [[0.55, 0.6, 0.9, 0.8]],
-  [[0.59, 0.6, 0.94, 0.8]],
-  [[0.63, 0.6, 0.98, 0.8]],
-  [[0.67, 0.6, 1.02, 0.8]],
-  [[0.7100000000000001, 0.6, 1.06, 0.8]],
-  [[0.75, 0.6, 1.1, 0.8]]
-]
-lvd_gligen_phrases = [["a dog"] for _ in range(num_frames)]
-
-generator = torch.manual_seed(1)
-video_frames = pipe(prompt, num_inference_steps=25, height=256, width=256, num_frames=16, lvd_gligen_scheduled_sampling_beta=1.0, lvd_gligen_boxes=lvd_gligen_boxes, lvd_gligen_phrases=lvd_gligen_phrases, generator=generator).frames
-video = imageio.mimsave(imageio.RETURN_BYTES, video_frames, format='gif', loop=0, duration=1000 * 1/fps)
-display(IPyImage(data=video, format='gif'))
-```
-</details>
-
-## Text-to-image generation
-The pretrained adapters for text-to-video generation on SDv2.1 can be found here: [https://huggingface.co/longlian/igligen-sd2.1-v1.0](https://huggingface.co/longlian/igligen-sd2.1-v1.0). The models trained with this repo is compatible with the official pipeline for inference (`StableDiffusionGLIGENPipeline`) on SDv1.5 and SDv2.1. You can use it in LMD+, as currently GLIGEN only offers weights for SDv1.4. Check out the example colab [here](https://colab.research.google.com/drive/1vl3Y2gZcjmXBh7fdDUMF9v-rrQZBXUD7).
-
-<details>
-  <summary>An example that uses SD v2.1 + GLIGEN.</summary>
-
-Tested with `diffusers==0.27.2`.
-
-```python
-import torch
-from diffusers import StableDiffusionGLIGENPipeline, DPMSolverMultistepScheduler
-
-pipe = StableDiffusionGLIGENPipeline.from_pretrained("longlian/igligen-sd2.1-v1.0", torch_dtype=torch.float16).to("cuda")
-pipe = pipe.to("cuda")
-
-pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
-
-prompt = "An image of grassland with a dog."
-
-images = pipe(prompt, num_inference_steps=25, height=512, width=512, gligen_scheduled_sampling_beta=0.4, gligen_boxes=[[0.1, 0.6, 0.3, 0.8]], gligen_phrases=["a dog"], num_images_per_prompt=1).images
-
-for image in images:
-    display(image)
-```
-</details>
 
 ## Citation
 The authors of this repo (IGLIGEN) are not affiliated with the authors of GLIGEN. Since IGLIGEN is based on GLIGEN, if you use the IGLIGEN code or adapters, please kindly consider citing the original GLIGEN paper:
