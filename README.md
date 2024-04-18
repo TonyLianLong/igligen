@@ -116,7 +116,7 @@ The dataset is preprocessed and stored in latent format. The preprocessed datase
 | Latents (512x512, for SD v1.4/1.5/2.1-base)  | https://huggingface.co/datasets/longlian/sa-1b_latents_512 |
 | Latents (256x256, for ModelScope) | https://huggingface.co/datasets/longlian/sa-1b_latents_256 |
 | Latents (768, for SD v2.1)  | https://huggingface.co/datasets/longlian/sa-1b_latents_768 |
-| Bounding Boxes    | https://huggingface.co/datasets/longlian/sa-1b-boxes |
+| Bounding Boxes    | https://huggingface.co/datasets/longlian/sa-1b_boxes |
 
 Please put the latents in `data/latents` and bounding boxes in `data/boxes`.
 
