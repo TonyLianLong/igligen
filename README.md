@@ -6,7 +6,9 @@ The official [GLIGEN](https://github.com/gligen/GLIGEN) training code is from th
 
 ## Pretrained GLIGEN adapters
 ### Text-to-video generation
-The pretrained adapters for text-to-video generation on ModelScope can be found here: [https://huggingface.co/longlian/text-to-video-lvd-ms](https://huggingface.co/longlian/text-to-video-lvd-ms). You can use LLM-generated dynamic scene layouts (i.e., stage 1 of LVD) or provide the boxes for each frame. Check out the [example colab](https://colab.research.google.com/drive/17He4bFAF8lXmT9Nfv-Sg29iKtPelDUNZ).
+The pretrained adapters for text-to-video generation on ModelScope can be found here: [https://huggingface.co/longlian/text-to-video-lvd-ms](https://huggingface.co/longlian/text-to-video-lvd-ms). The pretrained adapters for text-to-video generation on Zeroscope can be found here: [https://huggingface.co/longlian/text-to-video-lvd-zs](https://huggingface.co/longlian/text-to-video-lvd-zs). 
+
+You can use LLM-generated dynamic scene layouts (i.e., stage 1 of LVD) or provide the boxes for each frame. Check out the [example colab](https://colab.research.google.com/drive/17He4bFAF8lXmT9Nfv-Sg29iKtPelDUNZ) with Modelscope (square videos, sometimes with watermark). Check out the [example colab](https://colab.research.google.com/drive/1ySd_Ja2SZFQ1UbHz7dAChDO_nERM_B6H) with Zeroscope (horizontal videos).
 
 <details>
   <summary>An example that uses ModelScope + GLIGEN.</summary>
