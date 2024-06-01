@@ -5,8 +5,8 @@ This research project aims to create a complete, huggingface-style pipeline for 
 The official [GLIGEN](https://github.com/gligen/GLIGEN) training code is from the original latent diffusion/stable diffusion codebase. This make  it not fully compatible with huggingface `diffusers`, `transformers`, `datasets`, and `accelerate` that are commonly used for training diffusion models. Currently, the only released gligen weights are on SDv1.4, and weights for more updated models such as SDv2.1 are missing. This repo (IGLIGEN) makes training GLIGEN on custom datasets and custom models easier.
 
 ## TODO
-[ ] Add SDXL support
-[ ] Add models with further fine-tuning with [needle in a haystack](https://arxiv.org/abs/2309.15807), using aesthetic datasets such as [LAION Aesthetics](https://laion.ai/blog/laion-aesthetics/).
+- [ ] Add SDXL support
+- [ ] Add models with further fine-tuning with [needle in a haystack](https://arxiv.org/abs/2309.15807), using aesthetic datasets such as [LAION Aesthetics](https://laion.ai/blog/laion-aesthetics/).
 
 Please send me a message if you're interested in helping with the project.
 
