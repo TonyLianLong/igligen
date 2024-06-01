@@ -4,6 +4,12 @@ This research project aims to create a complete, huggingface-style pipeline for 
 ## Motivation
 The official [GLIGEN](https://github.com/gligen/GLIGEN) training code is from the original latent diffusion/stable diffusion codebase. This make  it not fully compatible with huggingface `diffusers`, `transformers`, `datasets`, and `accelerate` that are commonly used for training diffusion models. Currently, the only released gligen weights are on SDv1.4, and weights for more updated models such as SDv2.1 are missing. This repo (IGLIGEN) makes training GLIGEN on custom datasets and custom models easier.
 
+## TODO
+[ ] Add SDXL support
+[ ] Add models with further fine-tuning with [needle in a haystack](https://arxiv.org/abs/2309.15807), using aesthetic datasets such as [LAION Aesthetics](https://laion.ai/blog/laion-aesthetics/).
+
+Please send me a message if you're interested in helping with the project.
+
 ## Examples
 ### IGLIGEN on SDv2.1 for box-controlled text-to-image generation
 Condition for the examples:
@@ -15,7 +21,7 @@ GLIGEN boxes: `[[0.1, 0.6, 0.3, 0.8], [0.6, 0.2, 0.9, 0.8]]`
 
 | Baseline (generated images at the beginning of training) | IGLIGEN (generated images at the end of training) | 
 | ------ | -------- | 
-| ![image](https://github.com/TonyLianLong/igligen/assets/1451234/887b21db-a0bf-49bb-9eda-354a806e9e02) | ![image](https://github.com/TonyLianLong/igligen/assets/1451234/8b615036-07cc-4c4b-b419-132255762094) |
+| ![image](https://github.com/TonyLianLong/igligen/assets/1451234/887b21db-a0bf-49bb-9eda-354a806e9e02) | ![image](https://github.com/TonyLianLong/igligen/assets/1451234/ee54016a-0fd4-4811-a684-cba180c9407d) |
 
 ### IGLIGEN on Zeroscope for box-controlled text-to-video generation
 Example videos generated with the scripts above with prompt `A bear walking from the left to the right`, when combined with our work [LLM-grounded Video Diffusion Models](https://llm-grounded-video-diffusion.github.io/):
