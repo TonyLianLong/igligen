@@ -4,9 +4,32 @@ This research project aims to create a complete, huggingface-style pipeline for 
 ## Motivation
 The official [GLIGEN](https://github.com/gligen/GLIGEN) training code is from the original latent diffusion/stable diffusion codebase. This make  it not fully compatible with huggingface `diffusers`, `transformers`, `datasets`, and `accelerate` that are commonly used for training diffusion models. Currently, the only released gligen weights are on SDv1.4, and weights for more updated models such as SDv2.1 are missing. This repo (IGLIGEN) makes training GLIGEN on custom datasets and custom models easier.
 
+## Examples
+### IGLIGEN on SDv2.1 for box-controlled text-to-image generation
+Condition for the examples:
+Prompt: "An image of grassland with a dog and a tree."
+
+GLIGEN phrases: `["a dog", "a tree"]`
+
+GLIGEN boxes: `[[0.1, 0.6, 0.3, 0.8], [0.6, 0.2, 0.9, 0.8]]`
+
+| Baseline (generated images at the beginning of training) | IGLIGEN (generated images at the end of training) | 
+| ------ | -------- | 
+| ![image](https://github.com/TonyLianLong/igligen/assets/1451234/887b21db-a0bf-49bb-9eda-354a806e9e02) | ![image](https://github.com/TonyLianLong/igligen/assets/1451234/8b615036-07cc-4c4b-b419-132255762094) |
+
+### IGLIGEN on Zeroscope for box-controlled text-to-video generation
+Example videos generated with the scripts above with prompt `A bear walking from the left to the right`, when combined with our work [LLM-grounded Video Diffusion Models](https://llm-grounded-video-diffusion.github.io/):
+| Baseline (Zeroscope) | LVD-GLIGEN (using IGLIGEN adapters) | 
+| ---- | -------- | 
+| ![Example Video Demo: Zeroscope baseline](https://github.com/TonyLianLong/LLM-groundedVideoDiffusion/blob/main/assets/example_video_zeroscope_baseline.gif) | ![Example Video Demo: LVD on Zeroscope](https://github.com/TonyLianLong/LLM-groundedVideoDiffusion/blob/main/assets/example_video_lvd_gligen_zeroscope.gif) |
+
+Note that the gifs are compressed so the actual generation quality is higher.
+
 ## Pretrained GLIGEN adapters
 ### Text-to-video generation
-The pretrained adapters for text-to-video generation on ModelScope can be found here: [https://huggingface.co/longlian/text-to-video-lvd-ms](https://huggingface.co/longlian/text-to-video-lvd-ms). You can use LLM-generated dynamic scene layouts (i.e., stage 1 of LVD) or provide the boxes for each frame. Check out the [example colab](https://colab.research.google.com/drive/17He4bFAF8lXmT9Nfv-Sg29iKtPelDUNZ).
+The pretrained adapters for text-to-video generation on ModelScope can be found here: [https://huggingface.co/longlian/text-to-video-lvd-ms](https://huggingface.co/longlian/text-to-video-lvd-ms). The pretrained adapters for text-to-video generation on Zeroscope can be found here: [https://huggingface.co/longlian/text-to-video-lvd-zs](https://huggingface.co/longlian/text-to-video-lvd-zs). 
+
+You can use LLM-generated dynamic scene layouts (i.e., stage 1 of LVD) or provide the boxes for each frame. Check out the [example colab](https://colab.research.google.com/drive/17He4bFAF8lXmT9Nfv-Sg29iKtPelDUNZ) with Modelscope (square videos, sometimes with watermark). Check out the [example colab](https://colab.research.google.com/drive/1ySd_Ja2SZFQ1UbHz7dAChDO_nERM_B6H) with Zeroscope (horizontal videos).
 
 <details>
   <summary>An example that uses ModelScope + GLIGEN.</summary>
